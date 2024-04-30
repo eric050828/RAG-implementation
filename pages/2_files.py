@@ -6,7 +6,7 @@ from pathlib import Path
 import streamlit as st
 
 from utils import (list_files, open_pdf, save_pdf)
-from utils import save_session, load_session
+
 
 def show_pdf(filename):
     bytes_pdf = open_pdf(filename)
@@ -19,7 +19,7 @@ def show_pdf(filename):
     )
 
 
-st.session_state.update(load_session())
+# Sidebar content
 with st.sidebar:
     st.title("Chat with Docs")
     
