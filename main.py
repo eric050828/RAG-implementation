@@ -1,6 +1,9 @@
 import streamlit as st
 
+from utils import save_session, load_session
 
+
+st.session_state.update(load_session())
 with st.sidebar:
     st.title("Chat with Docs")
     

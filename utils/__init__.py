@@ -1,4 +1,5 @@
 from .files import *
+from .session import *
 
 
 open_pdf = PDF.open
