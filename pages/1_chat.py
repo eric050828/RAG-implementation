@@ -1,5 +1,3 @@
-from time import sleep
-
 import streamlit as st
 from utils import (empty_chat, list_files, save_session, load_session, ROOT_DIR)
 
@@ -12,23 +10,30 @@ with st.sidebar:
 
     st.page_link(page="pages/1_chat.py", label="聊天室")
     st.page_link(page="pages/2_files.py", label="文件")
+    st.page_link(page="pages/3_web.py", label="網頁")
     st.divider()
 
-# Chat list
+# Chat
 chat_title = st.empty()
 chat_path = st.empty()
+chats = st.session_state.chats.keys()
 
-col1, col2 = st.sidebar.columns([3, 1])
+# New chat
+if st.sidebar.button("New chat", use_container_width=True):
+    new_chat_title = f"Chat {len(chats) + 1}"
+    new_chat = empty_chat(new_chat_title)
+    st.session_state.chats.update(new_chat)
 
 # Select chat
-selected_chat = col1.selectbox("chats", st.session_state.chats.keys())
+col1, col2 = st.sidebar.columns([3, 1])
+selected_chat = col1.selectbox("chats", chats)
 chat_title.header(selected_chat)
 
 # Chat Delete
 if col2.button("Delete", type="primary"):
     del st.session_state.chats[selected_chat]
     if not st.session_state.chats.keys():
-        st.session_state.chats.update(empty_chat("chat1"))
+        st.session_state.chats.update(empty_chat("Chat1"))
     selected_chat = list(st.session_state.chats.keys())[0]
     
 # Chat rename
@@ -54,7 +59,7 @@ if st.session_state.chats[selected_chat]["path"] != "":
 
 files = list_files("/data")
 col1, col2 = st.sidebar.columns([3, 1])
-selected_pdf = col1.selectbox("選擇文件", [None]+files, placeholder="選擇參考文件")
+selected_pdf = col1.selectbox("選擇文件", files, index=None, placeholder="選擇參考文件")
 submit_btn = col2.button("上傳")
 if submit_btn and selected_pdf is not None:
     path = f"{ROOT_DIR}\\data\\{selected_pdf}"

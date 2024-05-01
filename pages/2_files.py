@@ -1,7 +1,5 @@
 import os
 import base64
-import tempfile
-from pathlib import Path
 
 import streamlit as st
 
@@ -25,6 +23,7 @@ with st.sidebar:
     
     st.page_link(page="pages/1_chat.py", label="聊天室")
     st.page_link(page="pages/2_files.py", label="文件")
+    st.page_link(page="pages/3_web.py", label="網頁")
     st.divider()
 
 st.header("Files")
@@ -41,5 +40,5 @@ if uploadfiles:
 
 files = list_files("/data")
 
-if preview_pdf:=st.selectbox("預覽文件", [None]+files, placeholder="選擇要預覽的文件"):
+if preview_pdf:=st.selectbox("預覽文件", files, index=None, placeholder="選擇要預覽的文件"):
     show_pdf(preview_pdf)
