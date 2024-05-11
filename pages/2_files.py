@@ -3,6 +3,7 @@ import base64
 
 import streamlit as st
 
+from rag.database import saves
 from utils import (list_files, open_pdf, save_pdf, Page)
 
 
@@ -23,11 +24,12 @@ class FilePage(Page):
 
         uploadfiles = st.file_uploader(
             "上傳檔案", 
-            type=["txt", "pdf"], 
+            type=["txt", "pdf", "pptx"], 
             accept_multiple_files=True,
         )
         if uploadfiles:
             save_paths = save_pdf(uploadfiles)
+            saves(save_paths)
             st.success(f"已儲存 {len(save_paths)} 個檔案。")
 
 
