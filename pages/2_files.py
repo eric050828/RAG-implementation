@@ -3,7 +3,7 @@ import base64
 
 import streamlit as st
 
-from rag.database import saves
+from rag import saves
 from utils import (list_files, open_pdf, save_pdf, Page)
 
 

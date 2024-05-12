@@ -1,4 +1,6 @@
 import streamlit as st
+
+from rag import get_response, save
 from utils import (create_empty_chat, list_files, 
                    save_session, load_session, 
                    ROOT_DIR, Page)
@@ -34,7 +36,7 @@ class ChatPage(Page):
             # Chat rename
             col1, col2 = st.columns([3, 1])
             new_chat_name = col1.text_input("new name")
-            if col2.button("Rename") and new_chat_name is not None:
+            if col2.button("Rename") and new_chat_name:
                 st.session_state.chats[new_chat_name] = st.session_state.chats.pop(selected_chat)
                 selected_chat = new_chat_name
 
@@ -59,6 +61,7 @@ class ChatPage(Page):
                 url = col1.text_input("url", placeholder="input url here...", label_visibility="hidden")
                 if col2.button("上傳") and url:
                     st.session_state.chats[selected_chat]["path"] = url
+                    save(url)
 
         chat_path.write(st.session_state.chats[selected_chat]["path"])
             
@@ -73,8 +76,14 @@ class ChatPage(Page):
             
             st.session_state.chats[selected_chat]["messages"].append({"role": "user", "content": prompt})
 
-            response = f"you said: {prompt}"
-            st.chat_message("assistant").markdown(response)
+            response = get_response(
+                path=st.session_state.chats[selected_chat]["path"],
+                question=prompt,
+                history=st.session_state.chats[selected_chat]["messages"],
+                # stream=True,
+            )
+            st.chat_message("assistant").write(response)
+            # all_response = st.chat_message("assistant").write_stream()
                 
             st.session_state.chats[selected_chat]["messages"].append({"role": "assistant", "content": "".join(response)})
 
