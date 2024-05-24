@@ -13,6 +13,8 @@ SESSION_CONTENT = {
 SESSION_PATH = os.path.join("data", "session.json")
 
 def _session_file_exists():
+    if not os.path.exists("data"):
+        os.mkdir("data")
     if not os.path.exists(SESSION_PATH):
         with open(SESSION_PATH, "w") as file:
             json.dump(SESSION_CONTENT, file)

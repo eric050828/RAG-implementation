@@ -35,7 +35,11 @@ def list_files(directory: str) -> list[str]:
         
     target_dir = ROOT_DIR + directory
     if not os.path.exists(target_dir):
-        raise FileNotFoundError(f"Directory '{target_dir}' does not exist.")
+        try:
+            os.mkdir(target_dir)
+        except:
+            raise FileNotFoundError(f"Create directory '{target_dir}' error")
+        # raise FileNotFoundError(f"Directory '{target_dir}' does not exist.")
     
     files = os.listdir(target_dir)
     return files
