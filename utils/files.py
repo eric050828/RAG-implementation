@@ -9,7 +9,8 @@ class PDF:
     def save(files: list[BytesIO]) -> list[str]:
         save_paths = []
         for file in files:
-            save_path = ROOT_DIR + "\\data\\" + file.name
+            # save_path = ROOT_DIR + "\\data\\" + file.name
+            save_path = ROOT_DIR + "\\uploads\\" + file.name
             with open(save_path, "wb") as f:
                 f.write(file.getbuffer())
             save_paths.append(save_path)
