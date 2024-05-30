@@ -18,7 +18,8 @@ class PDF:
         
     @staticmethod
     def open(file: str) -> bytes:
-        path = ROOT_DIR + "\\data\\" + file
+        # path = ROOT_DIR + "\\data\\" + file
+        path = ROOT_DIR + "\\uploads\\" + file
         if not os.path.exists(path):
             raise FileNotFoundError(f"'{path} does not found.'")
         
