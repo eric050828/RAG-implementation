@@ -16,22 +16,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.memory import ConversationBufferMemory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
+from langchain_community.output_parsers.rail_parser import GuardrailsOutputParser
+from langchain_community.llms import ollama
+from langchain_community.vectorstores import utils as chromautils
 
-
-load_dotenv("./.config/.env")
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise EnvironmentError("OpenAI API key not found.")
-os.environ["OPENAI_API_KEY"] = api_key
-
-VECTORDB_DIRECTORY = "vectordb"
-LLM = ChatOpenAI(
-    model="gpt-3.5-turbo",
-    streaming=True,
-    # callbacks=[StreamingStdOutCallbackHandler()],
-    temperature=0
-)
-EMBEDDING = OpenAIEmbeddings()
 name = ""
 vectordb = None
 prompt = PromptTemplate(
@@ -44,6 +34,29 @@ memory = ConversationBufferMemory(
     input_key="question"
 )
 
+def set_model(model: str):
+    global LLM, EMBEDDING, VECTORDB_DIRECTORY, model_name
+    model_name = model
+    if model == "OpenAI":
+        load_dotenv("./.config/.env")
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise EnvironmentError("OpenAI API key not found.")
+        os.environ["OPENAI_API_KEY"] = api_key        
+        LLM = ChatOpenAI(
+            model="gpt-3.5-turbo",
+            streaming=True,
+            # callbacks=[StreamingStdOutCallbackHandler()],
+            temperature=0
+        )
+        EMBEDDING = OpenAIEmbeddings()
+        VECTORDB_DIRECTORY = "openai_vectordb"
+        
+    elif model == "Gemma":
+        LLM = ChatOllama(model="gemma")
+        EMBEDDING = OllamaEmbeddings(model="gemma")
+        VECTORDB_DIRECTORY = "gemma_vectordb"
+
 def _load_pdf(
         path: str, 
         password: str | bytes | None = None,
@@ -54,6 +67,7 @@ def _load_pdf(
         extract_images=extract_images
     )
     data = loader.load()
+    data = chromautils.filter_complex_metadata(data)
     return data
 
 def _load_txt(
@@ -63,6 +77,7 @@ def _load_txt(
         autodetect_encoding=True
     )
     data = loader.load()
+    data = chromautils.filter_complex_metadata(data)
     return data
 
 def _load_web(
@@ -71,15 +86,17 @@ def _load_web(
         web_path=path,
     )
     data = loader.load()
+    data = chromautils.filter_complex_metadata(data)
     return data
 
 def _load_pptx(
         path: str,):
     loader = UnstructuredPowerPointLoader(
-        file_path=path,
+        file_path=str(path),
         mode="elements"
     )
     data = loader.load()
+    data = chromautils.filter_complex_metadata(data)
     return data
 
 def _split(
@@ -96,10 +113,10 @@ def _get_path_name(
     path = Path(path)
     return path.name
 
-def save(
-        path: str):
+def save(path: str):
     global name, vectordb
     name = _get_path_name(path)
+    name = str(hash(name)).replace("-", "_")
     if path.startswith(("http://", "https://", "www.")):
         data = _load_web(path)
     else:
@@ -113,7 +130,13 @@ def save(
                 data = _load_pptx(path)
             case _:
                 return False
+    if not data:
+        print(f"Failed to load data from {path}")
+        raise ValueError(f"Failed to load data from {path}")
     chunks = _split(data)
+    if not chunks:
+        print(f"Failed to split data from {path}")
+        raise ValueError(f"Failed to split data from {path}")
     vectordb = Chroma.from_documents(
             collection_name=name, 
             documents=chunks, 
@@ -132,10 +155,12 @@ def get_response(
         question: str,
         history: list[str],):
     save(path)
+    if not vectordb:
+        raise ValueError(f"Vector database is not initialized")
     retriever = vectordb.as_retriever(search_kwargs={"k":4})
 
     retrieval_qa_chain = RetrievalQA.from_chain_type(
-        LLM,
+        llm=LLM,
         chain_type='stuff',
         retriever=retriever,
         chain_type_kwargs={
