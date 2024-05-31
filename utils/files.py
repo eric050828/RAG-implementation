@@ -9,7 +9,8 @@ class PDF:
     def save(files: list[BytesIO]) -> list[str]:
         save_paths = []
         for file in files:
-            save_path = ROOT_DIR + "\\data\\" + file.name
+            # save_path = ROOT_DIR + "\\data\\" + file.name
+            save_path = ROOT_DIR + "\\uploads\\" + file.name
             with open(save_path, "wb") as f:
                 f.write(file.getbuffer())
             save_paths.append(save_path)
@@ -17,7 +18,8 @@ class PDF:
         
     @staticmethod
     def open(file: str) -> bytes:
-        path = ROOT_DIR + "\\data\\" + file
+        # path = ROOT_DIR + "\\data\\" + file
+        path = ROOT_DIR + "\\uploads\\" + file
         if not os.path.exists(path):
             raise FileNotFoundError(f"'{path} does not found.'")
         
@@ -35,7 +37,11 @@ def list_files(directory: str) -> list[str]:
         
     target_dir = ROOT_DIR + directory
     if not os.path.exists(target_dir):
-        raise FileNotFoundError(f"Directory '{target_dir}' does not exist.")
+        try:
+            os.mkdir(target_dir)
+        except:
+            raise FileNotFoundError(f"Create directory '{target_dir}' error")
+        # raise FileNotFoundError(f"Directory '{target_dir}' does not exist.")
     
     files = os.listdir(target_dir)
     return files

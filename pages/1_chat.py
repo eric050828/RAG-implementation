@@ -22,21 +22,18 @@ class ChatPage(Page):
                 st.session_state.chats.update(new_chat)
 
             # Select chat
-            col1, col2 = st.columns([3, 1])
-            selected_chat = col1.selectbox("chats", chats)
-            chat_title.header(selected_chat)
+            selected_chat = st.selectbox("Chats", chats)
 
             # Chat Delete
-            if col2.button("Delete", type="primary"):
+            if st.button("Delete this chat", use_container_width=True):
                 del st.session_state.chats[selected_chat]
                 if not st.session_state.chats.keys():
                     st.session_state.chats.update(create_empty_chat("Chat1"))
                 selected_chat = list(st.session_state.chats.keys())[0]
                 
             # Chat rename
-            col1, col2 = st.columns([3, 1])
-            new_chat_name = col1.text_input("new name")
-            if col2.button("Rename") and new_chat_name:
+            new_chat_name = st.text_input("Rename chat")
+            if st.button("Rename this chat", use_container_width=True):
                 st.session_state.chats[new_chat_name] = st.session_state.chats.pop(selected_chat)
                 selected_chat = new_chat_name
 
@@ -50,16 +47,14 @@ class ChatPage(Page):
                     path = st.session_state.chats[selected_chat]["path"]
 
                 files = list_files("/uploads")
-                col1, col2 = st.columns([3, 1])
-                selected_pdf = col1.selectbox("選擇文件", files, index=None, placeholder="選擇參考文件")
-                upload_btn = col2.button("上傳")
+                selected_pdf = st.selectbox("選擇文件", files, index=None, placeholder="選擇參考文件")
+                upload_btn = st.button("上傳", use_container_width=True)
                 if upload_btn and selected_pdf is not None:
                     path = f"{ROOT_DIR}\\uploads\\{selected_pdf}"
                     st.session_state.chats[selected_chat]["path"] = path
             elif option == "url":
-                col1, col2 = st.columns([3, 1])
-                url = col1.text_input("url", placeholder="input url here...", label_visibility="hidden")
-                if col2.button("上傳") and url:
+                url = st.text_input("url", placeholder="input url here...", label_visibility="hidden")
+                if st.button("上傳", use_container_width=True) and url:
                     st.session_state.chats[selected_chat]["path"] = url
                     save(url)
 
